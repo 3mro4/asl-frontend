@@ -1,0 +1,72 @@
+<div class="app-wrapper">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon">⇄</div>
+            <div>
+                <div class="brand-name">SignBridge</div>
+                <div class="brand-sub">Sign Language Translator</div>
+            </div>
+        </div>
+        <div class="mode-toggle">
+            <button [class.active]="mode === 'video'" (click)="mode = 'video'">
+                🎥 Video → Text
+            </button>
+            <button [class.active]="mode === 'text'" (click)="mode = 'text'">
+                T Text → Video
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="main">
+        <h1 class="title">Video to Text</h1>
+        <p class="subtitle">
+            Sign in front of your camera and we'll translate your<br />
+            gestures into text in real time.
+        </p>
+
+        <div class="panels">
+            <!-- Camera Panel -->
+            <div class="panel">
+                <div class="panel-header">Camera Input</div>
+                <div class="video-area">
+                    <video #videoEl autoplay playsinline [style.display]="isRecording ? 'block' : 'none'"></video>
+                    <canvas #canvasEl style="display:none"></canvas>
+                    <div class="no-camera" *ngIf="!isRecording">
+                        <span class="camera-icon">⊘</span>
+                        <p>Camera not active</p>
+                    </div>
+
+                    <!-- Buffer progress bar -->
+                    <div class="buffer-bar" *ngIf="isRecording && bufferPct < 100">
+                        <div class="buffer-fill" [style.width.%]="bufferPct"></div>
+                        <span>Buffering... {{bufferPct}}%</span>
+                    </div>
+                </div>
+                <button class="record-btn" (click)="toggleRecording()">
+                    {{ isRecording ? '⏹ Stop Recording' : '🎥 Start Recording' }}
+                </button>
+            </div>
+
+            <!-- Translation Panel -->
+            <div class="panel">
+                <div class="panel-header">Translated Text</div>
+                <div class="translation-area">
+                    <div *ngIf="!currentSign" class="placeholder">
+                        Translated text will appear here once you start recording.
+                    </div>
+                    <div *ngIf="currentSign" class="sign-result">
+                        <div class="sign-word">{{ currentSign }}</div>
+                        <div class="sign-conf" *ngIf="confidence > 0">
+                            Confidence: {{ (confidence * 100).toFixed(1) }}%
+                        </div>
+                    </div>
+                    <div class="sign-history" *ngIf="signHistory.length > 0">
+                        <p>{{ signHistory.join(' ') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

@@ -1,0 +1,119 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.app-wrapper {
+  min-height: 100vh;
+  background: #f5f4f0;
+  font-family: 'Inter', sans-serif;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon {
+  width: 40px; height: 40px;
+  background: #2a9d8f;
+  color: white; border-radius: 10px;
+  display: flex; align-items: center;
+  justify-content: center; font-size: 18px;
+}
+.brand-name { font-weight: 700; font-size: 18px; }
+.brand-sub { font-size: 12px; color: #888; }
+
+.mode-toggle { display: flex; gap: 8px; }
+.mode-toggle button {
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.mode-toggle button.active {
+  background: #2a9d8f;
+  color: white;
+  border-color: #2a9d8f;
+}
+
+.main { padding: 40px; max-width: 1200px; margin: 0 auto; }
+.title { font-size: 28px; font-weight: 700; text-align: center; }
+.subtitle { text-align: center; color: #666; margin: 10px 0 32px; line-height: 1.6; }
+
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.panel {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 16px 20px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.video-area {
+  position: relative;
+  height: 300px;
+  background: #f0f0ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-area video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.no-camera { text-align: center; color: #aaa; }
+.camera-icon { font-size: 40px; }
+
+.buffer-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.5);
+  color: white; font-size: 12px;
+  padding: 6px 12px;
+  text-align: center;
+}
+.buffer-fill {
+  height: 3px;
+  background: #2a9d8f;
+  transition: width 0.3s;
+  margin-bottom: 4px;
+}
+
+.record-btn {
+  width: 100%; padding: 16px;
+  background: #2a9d8f; color: white;
+  border: none; font-size: 15px;
+  font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.record-btn:hover { background: #238a7d; }
+
+.translation-area {
+  height: 340px; padding: 20px;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+}
+.placeholder { color: #aaa; text-align: center; }
+
+.sign-result { text-align: center; }
+.sign-word {
+  font-size: 48px; font-weight: 700;
+  color: #2a9d8f;
+}
+.sign-conf { color: #888; margin-top: 8px; }
+.sign-history {
+  margin-top: 20px; padding: 12px;
+  background: #f5f4f0; border-radius: 8px;
+  color: #444; font-size: 16px;
+  width: 100%; text-align: center;
+}
