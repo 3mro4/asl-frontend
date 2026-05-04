@@ -1,72 +1,145 @@
 <div class="app-wrapper">
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="brand">
-            <div class="brand-icon">⇄</div>
-            <div>
-                <div class="brand-name">SignBridge</div>
-                <div class="brand-sub">Sign Language Translator</div>
-            </div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">⇄</div>
+      <div>
+        <div class="brand-name">SignBridge</div>
+        <div class="brand-sub">Sign Language Translator</div>
+      </div>
+    </div>
+    <div class="mode-toggle">
+      <button [class.active]="mode === 'video'" (click)="setMode('video')">🎥 Video → Text</button>
+      <button [class.active]="mode === 'text'" (click)="setMode('text')">T Text → Sign</button>
+    </div>
+  </nav>
+
+  <!-- ══════════════ VIDEO → TEXT ══════════════ -->
+  <main class="main" *ngIf="mode === 'video'">
+    <h1 class="title">Video to Text</h1>
+    <p class="subtitle">Sign in front of your camera and we'll translate your gestures into text in real time.</p>
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-header">Camera Input</div>
+        <div class="video-area">
+          <video #videoEl autoplay playsinline [style.display]="isRecording ? 'block' : 'none'"></video>
+          <canvas #canvasEl style="display:none"></canvas>
+          <div class="no-camera" *ngIf="!isRecording">
+            <span class="camera-icon">⊘</span>
+            <p>Camera not active</p>
+          </div>
+          <div class="buffer-bar" *ngIf="isRecording && bufferPct < 100">
+            <div class="buffer-fill" [style.width.%]="bufferPct"></div>
+            <span>Buffering... {{bufferPct}}%</span>
+          </div>
         </div>
-        <div class="mode-toggle">
-            <button [class.active]="mode === 'video'" (click)="mode = 'video'">
-                🎥 Video → Text
-            </button>
-            <button [class.active]="mode === 'text'" (click)="mode = 'text'">
-                T Text → Video
-            </button>
+        <button class="record-btn" (click)="toggleRecording()">
+          {{ isRecording ? '⏹ Stop Recording' : '🎥 Start Recording' }}
+        </button>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Translated Text</div>
+        <div class="translation-area">
+          <div *ngIf="!currentSign" class="placeholder">Translated text will appear here once you start recording.</div>
+          <div *ngIf="currentSign" class="sign-result">
+            <div class="sign-word">{{ currentSign }}</div>
+            <div class="sign-conf" *ngIf="confidence > 0">Confidence: {{ (confidence * 100).toFixed(1) }}%</div>
+          </div>
+          <div class="sign-history" *ngIf="signHistory.length > 0">
+            <p>{{ signHistory.join(' ') }}</p>
+          </div>
         </div>
-    </nav>
+      </div>
+    </div>
+  </main>
 
-    <!-- Main -->
-    <main class="main">
-        <h1 class="title">Video to Text</h1>
-        <p class="subtitle">
-            Sign in front of your camera and we'll translate your<br />
-            gestures into text in real time.
-        </p>
+  <!-- ══════════════ TEXT → SIGN ══════════════ -->
+  <main class="main" *ngIf="mode === 'text'">
+    <h1 class="title">Text to Sign</h1>
+    <p class="subtitle">Type a message and watch the animated signer perform it in real time.</p>
 
-        <div class="panels">
-            <!-- Camera Panel -->
-            <div class="panel">
-                <div class="panel-header">Camera Input</div>
-                <div class="video-area">
-                    <video #videoEl autoplay playsinline [style.display]="isRecording ? 'block' : 'none'"></video>
-                    <canvas #canvasEl style="display:none"></canvas>
-                    <div class="no-camera" *ngIf="!isRecording">
-                        <span class="camera-icon">⊘</span>
-                        <p>Camera not active</p>
-                    </div>
+    <div class="panels">
+      <!-- Left: Input -->
+      <div class="panel">
+        <div class="panel-header">Your Message</div>
+        <div class="text-input-area">
+          <textarea [(ngModel)]="textInput" placeholder="Try: Hello, my name is Omar. Thank you." rows="5"></textarea>
+          <div class="text-btns">
+            <button class="record-btn" (click)="translate()">▶ Translate to Sign</button>
+            <button class="clear-btn" (click)="clearText()">✕ Clear</button>
+          </div>
+          <div class="examples-row">
+            <button class="chip" *ngFor="let ex of examples" (click)="useExample(ex)">"{{ex}}"</button>
+          </div>
 
-                    <!-- Buffer progress bar -->
-                    <div class="buffer-bar" *ngIf="isRecording && bufferPct < 100">
-                        <div class="buffer-fill" [style.width.%]="bufferPct"></div>
-                        <span>Buffering... {{bufferPct}}%</span>
-                    </div>
-                </div>
-                <button class="record-btn" (click)="toggleRecording()">
-                    {{ isRecording ? '⏹ Stop Recording' : '🎥 Start Recording' }}
-                </button>
+          <!-- Token breakdown -->
+          <div *ngIf="showBreakdown" class="breakdown">
+            <div class="panel-header" style="margin-bottom:8px">Word Breakdown</div>
+            <div class="tokens-row">
+              <button *ngFor="let tok of tokens"
+                class="token-btn"
+                [class.dict]="tok.kind==='word'"
+                [class.spell]="tok.kind==='letter'||tok.kind==='spell-start'"
+                [class.active]="tok.active"
+                (click)="jumpTo(tok.queueIdx)">
+                <span class="tok-kind">{{tok.kind==='word'?'sign':'A-Z'}}</span>
+                <span>{{tok.label}}</span>
+              </button>
             </div>
+          </div>
 
-            <!-- Translation Panel -->
-            <div class="panel">
-                <div class="panel-header">Translated Text</div>
-                <div class="translation-area">
-                    <div *ngIf="!currentSign" class="placeholder">
-                        Translated text will appear here once you start recording.
-                    </div>
-                    <div *ngIf="currentSign" class="sign-result">
-                        <div class="sign-word">{{ currentSign }}</div>
-                        <div class="sign-conf" *ngIf="confidence > 0">
-                            Confidence: {{ (confidence * 100).toFixed(1) }}%
-                        </div>
-                    </div>
-                    <div class="sign-history" *ngIf="signHistory.length > 0">
-                        <p>{{ signHistory.join(' ') }}</p>
-                    </div>
-                </div>
+          <!-- Dictionary -->
+          <div class="dict-section">
+            <div class="panel-header" style="margin-bottom:8px">Dictionary ({{dictEntries.length}} signs)</div>
+            <input class="dict-search" placeholder="Search a sign..." (input)="onDictSearch($any($event.target).value)" />
+            <div class="dict-grid">
+              <button *ngFor="let entry of dictEntries" class="dict-card" (click)="clickDictWord(entry.name)">
+                <div class="dict-name">{{entry.name}}</div>
+                <div class="dict-cat">{{entry.cat}}</div>
+              </button>
             </div>
+          </div>
         </div>
-    </main>
+      </div>
+
+      <!-- Right: Animator -->
+      <div class="panel">
+        <div class="panel-header">Sign Language Output</div>
+        <div class="stage">
+          <div class="stage-overlay">
+            <span [class]="modeTagClass">{{modeTag}}</span>
+            <span class="stage-tag" style="background:rgba(15,58,67,.65)">{{indexTag}}</span>
+          </div>
+          <svg class="figure" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg"
+               [innerHTML]="figureHtml | safeHtml"></svg>
+          <div class="stage-bottom">
+            <div class="now-label">Now signing</div>
+            <div class="now-word">{{nowSigning}}</div>
+            <div class="sign-desc-text">{{signDesc}}</div>
+          </div>
+        </div>
+
+        <!-- Player controls -->
+        <div class="player">
+          <button class="play-btn" (click)="toggleAnim()">
+            {{animPlaying ? '⏸' : '▶'}}
+          </button>
+          <div class="progress-wrap">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="progressPct"></div>
+            </div>
+            <div class="progress-meta">
+              <span>{{timeNow}}</span>
+              <span>{{timeTotal}}</span>
+            </div>
+          </div>
+          <div class="speed-ctrl">
+            <button *ngFor="let s of [0.5,1,1.5,2]"
+              [class.active]="animSpeed===s"
+              (click)="setSpeed(s)">{{s}}×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>

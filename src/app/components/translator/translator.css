@@ -117,3 +117,44 @@
   color: #444; font-size: 16px;
   width: 100%; text-align: center;
 }
+
+.text-input-area { padding: 16px; }
+textarea { width:100%; padding:12px; border:1px solid #e5e5e5; border-radius:8px; font-size:14px; resize:vertical; }
+.text-btns { display:flex; gap:8px; margin-top:10px; }
+.clear-btn { flex:1; padding:14px; background:#f0f0f0; border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+.examples-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.chip { padding:6px 12px; background:#f0f0f0; border:none; border-radius:999px; font-size:12px; cursor:pointer; }
+.chip:hover { background:#e0e0e0; }
+.breakdown { margin-top:16px; }
+.tokens-row { display:flex; flex-wrap:wrap; gap:6px; }
+.token-btn { padding:4px 10px; border-radius:6px; border:1px solid #ddd; font-size:12px; cursor:pointer; background:white; }
+.token-btn.dict { border-color:#2a9d8f; color:#2a9d8f; }
+.token-btn.spell { border-color:#e9c46a; color:#888; }
+.token-btn.active { background:#2a9d8f; color:white; }
+.dict-section { margin-top:20px; }
+.dict-search { width:100%; padding:8px 12px; border:1px solid #e5e5e5; border-radius:8px; font-size:13px; margin-bottom:10px; }
+.dict-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:6px; max-height:200px; overflow-y:auto; }
+.dict-card { padding:8px; background:#f9f9f9; border:1px solid #eee; border-radius:8px; cursor:pointer; text-align:center; }
+.dict-card:hover { background:#e8f5f4; border-color:#2a9d8f; }
+.dict-name { font-size:11px; font-weight:600; }
+.dict-cat { font-size:10px; color:#999; }
+.stage { position:relative; background:#f5f4f0; border-radius:12px; overflow:hidden; }
+.stage-overlay { position:absolute; top:10px; left:10px; display:flex; gap:6px; z-index:2; }
+.stage-tag { padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.05em; }
+.stage-tag.idle { background:rgba(100,100,100,.6); color:white; }
+.stage-tag.signing { background:#2a9d8f; color:white; }
+.stage-tag.spelling { background:#e9c46a; color:#333; }
+.figure { width:100%; display:block; }
+.stage-bottom { padding:12px 16px; text-align:center; }
+.now-label { font-size:11px; color:#999; text-transform:uppercase; letter-spacing:.1em; }
+.now-word { font-size:28px; font-weight:700; color:#2a9d8f; }
+.sign-desc-text { font-size:12px; color:#888; margin-top:4px; }
+.player { display:flex; align-items:center; gap:12px; padding:12px 16px; border-top:1px solid #eee; }
+.play-btn { width:40px; height:40px; border-radius:50%; background:#2a9d8f; color:white; border:none; font-size:18px; cursor:pointer; }
+.progress-wrap { flex:1; }
+.progress-bar { height:4px; background:#eee; border-radius:2px; }
+.progress-fill { height:100%; background:#2a9d8f; border-radius:2px; transition:width .1s; }
+.progress-meta { display:flex; justify-content:space-between; font-size:11px; color:#999; margin-top:4px; }
+.speed-ctrl { display:flex; gap:4px; }
+.speed-ctrl button { padding:4px 8px; border:1px solid #ddd; border-radius:4px; font-size:11px; cursor:pointer; background:white; }
+.speed-ctrl button.active { background:#2a9d8f; color:white; border-color:#2a9d8f; }
