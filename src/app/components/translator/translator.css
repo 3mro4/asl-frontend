@@ -82,11 +82,24 @@
   padding: 6px 12px;
   text-align: center;
 }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .buffer-fill {
   height: 3px;
   background: #2a9d8f;
   transition: width 0.3s;
   margin-bottom: 4px;
+}
+
+.ws-status {
+  padding: 8px 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #888;
+  border-top: 1px solid #eee;
 }
 
 .record-btn {

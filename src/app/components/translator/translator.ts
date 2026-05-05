@@ -24,9 +24,11 @@ export class TranslatorComponent implements OnDestroy {
 
   // ── Video → Text state ──────────────────────────────
   isRecording = false;
+  cameraError = '';
+  wsStatus: 'connecting' | 'open' | 'error' | 'closed' | '' = '';
+  bufferPct = 0;
   currentSign = '';
   confidence = 0;
-  bufferPct = 0;
   signHistory: string[] = [];
   private stream: MediaStream | null = null;
   private frameInterval: any = null;
@@ -74,11 +76,20 @@ animPlaying = false;
   }
 
   async startRecording() {
+    this.cameraError = '';
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.cameraError = 'Camera API not available. Make sure the page is served over localhost or HTTPS.';
+      return;
+    }
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      this.videoEl.nativeElement.srcObject = this.stream;
       this.isRecording = true;
+      this.cdr.detectChanges();
+      const video = this.videoEl.nativeElement;
+      video.srcObject = this.stream;
+      video.play().catch(() => {});
       this.ws.connect();
+      this.ws.status$.subscribe(s => { this.wsStatus = s; this.cdr.detectChanges(); });
       this.sub = this.ws.prediction$.subscribe((data: any) => {
         if (data.sign && data.sign !== 'No Sign' && data.sign !== 'buffering') {
           if (data.sign !== this.currentSign) this.signHistory.push(data.sign);
@@ -88,8 +99,16 @@ animPlaying = false;
         if (data.buffer_pct !== undefined) this.bufferPct = data.buffer_pct;
         this.cdr.detectChanges();
       });
-      this.frameInterval = setInterval(() => this.sendFrame(), 300);
-    } catch (err) { console.error('Camera error:', err); }
+      this.frameInterval = setInterval(() => this.sendFrame(), 100);
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError') {
+        this.cameraError = 'Camera permission denied. Please allow camera access in your browser settings and try again.';
+      } else if (err.name === 'NotFoundError') {
+        this.cameraError = 'No camera found. Please connect a camera and try again.';
+      } else {
+        this.cameraError = `Camera error: ${err.message}`;
+      }
+    }
   }
 
   stopRecording() {
@@ -98,18 +117,19 @@ animPlaying = false;
     this.ws.disconnect();
     this.sub?.unsubscribe();
     this.isRecording = false;
+    this.wsStatus = '';
+    this.bufferPct = 0;
     this.currentSign = '';
     this.confidence = 0;
-    this.bufferPct = 0;
   }
 
   sendFrame() {
     const video = this.videoEl?.nativeElement;
     const canvas = this.canvasEl?.nativeElement;
     if (!video || !canvas) return;
-    canvas.width = 640; canvas.height = 480;
-    canvas.getContext('2d')!.drawImage(video, 0, 0, 640, 480);
-    canvas.toBlob(blob => { if (blob) this.ws.sendFrame(blob); }, 'image/jpeg', 0.8);
+    canvas.width = 320; canvas.height = 240;
+    canvas.getContext('2d')!.drawImage(video, 0, 0, 320, 240);
+    canvas.toBlob(blob => { if (blob) this.ws.sendFrame(blob); }, 'image/jpeg', 0.6);
   }
 
   // ── Text → Sign ──────────────────────────────────────

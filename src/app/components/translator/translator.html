@@ -26,12 +26,15 @@
           <canvas #canvasEl style="display:none"></canvas>
           <div class="no-camera" *ngIf="!isRecording">
             <span class="camera-icon">⊘</span>
-            <p>Camera not active</p>
+            <p>{{ cameraError || 'Camera not active' }}</p>
           </div>
-          <div class="buffer-bar" *ngIf="isRecording && bufferPct < 100">
+          <div class="buffer-bar" *ngIf="isRecording && wsStatus === 'open' && bufferPct < 100">
             <div class="buffer-fill" [style.width.%]="bufferPct"></div>
             <span>Buffering... {{bufferPct}}%</span>
           </div>
+        </div>
+        <div class="ws-status" *ngIf="isRecording && wsStatus === 'open'">
+          <span style="color:#2a9d8f">● Backend connected</span>
         </div>
         <button class="record-btn" (click)="toggleRecording()">
           {{ isRecording ? '⏹ Stop Recording' : '🎥 Start Recording' }}
@@ -40,7 +43,7 @@
       <div class="panel">
         <div class="panel-header">Translated Text</div>
         <div class="translation-area">
-          <div *ngIf="!currentSign" class="placeholder">Translated text will appear here once you start recording.</div>
+          <div *ngIf="!currentSign" class="placeholder">Translated text will appear here once you start signing.</div>
           <div *ngIf="currentSign" class="sign-result">
             <div class="sign-word">{{ currentSign }}</div>
             <div class="sign-conf" *ngIf="confidence > 0">Confidence: {{ (confidence * 100).toFixed(1) }}%</div>

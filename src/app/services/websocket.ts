@@ -5,17 +5,21 @@ import { Subject } from 'rxjs';
 export class WebsocketService {
   private socket: WebSocket | null = null;
   public prediction$ = new Subject<any>();
+  public status$ = new Subject<'connecting' | 'open' | 'error' | 'closed'>();
 
   connect() {
+    this.status$.next('connecting');
     this.socket = new WebSocket('ws://localhost:8000/ws/translate');
+
+    this.socket.onopen = () => this.status$.next('open');
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       this.prediction$.next(data);
     };
 
-    this.socket.onerror = (err) => console.error('WebSocket error:', err);
-    this.socket.onclose = () => console.log('WebSocket closed');
+    this.socket.onerror = () => this.status$.next('error');
+    this.socket.onclose = () => this.status$.next('closed');
   }
 
   sendFrame(blob: Blob) {
