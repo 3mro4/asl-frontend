@@ -10,7 +10,7 @@
     </div>
     <div class="mode-toggle">
       <button [class.active]="mode === 'video'" (click)="setMode('video')">🎥 Video → Text</button>
-      <button [class.active]="mode === 'text'" (click)="setMode('text')">T Text → Sign</button>
+      <button [class.active]="mode === 'text'"  (click)="setMode('text')">✋ Text → Sign</button>
     </div>
   </nav>
 
@@ -59,44 +59,38 @@
   <!-- ══════════════ TEXT → SIGN ══════════════ -->
   <main class="main" *ngIf="mode === 'text'">
     <h1 class="title">Text to Sign</h1>
-    <p class="subtitle">Type a message and watch the animated signer perform it in real time.</p>
+    <p class="subtitle">Type a word or phrase and watch the 2D skeleton signer perform it using real ASL motion data.</p>
 
     <div class="panels">
       <!-- Left: Input -->
       <div class="panel">
         <div class="panel-header">Your Message</div>
         <div class="text-input-area">
-          <textarea [(ngModel)]="textInput" placeholder="Try: Hello, my name is Omar. Thank you." rows="5"></textarea>
+          <textarea [(ngModel)]="textInput"
+            placeholder="Try: hello  or  dog cat bird"
+            rows="4"></textarea>
           <div class="text-btns">
             <button class="record-btn" (click)="translate()">▶ Translate to Sign</button>
-            <button class="clear-btn" (click)="clearText()">✕ Clear</button>
+            <button class="clear-btn"  (click)="clearText()">✕ Clear</button>
           </div>
           <div class="examples-row">
             <button class="chip" *ngFor="let ex of examples" (click)="useExample(ex)">"{{ex}}"</button>
           </div>
 
-          <!-- Token breakdown -->
-          <div *ngIf="showBreakdown" class="breakdown">
-            <div class="panel-header" style="margin-bottom:8px">Word Breakdown</div>
-            <div class="tokens-row">
-              <button *ngFor="let tok of tokens"
-                class="token-btn"
-                [class.dict]="tok.kind==='word'"
-                [class.spell]="tok.kind==='letter'||tok.kind==='spell-start'"
-                [class.active]="tok.active"
-                (click)="jumpTo(tok.queueIdx)">
-                <span class="tok-kind">{{tok.kind==='word'?'sign':'A-Z'}}</span>
-                <span>{{tok.label}}</span>
-              </button>
-            </div>
-          </div>
-
           <!-- Dictionary -->
           <div class="dict-section">
-            <div class="panel-header" style="margin-bottom:8px">Dictionary ({{dictEntries.length}} signs)</div>
-            <input class="dict-search" placeholder="Search a sign..." (input)="onDictSearch($any($event.target).value)" />
+            <div class="panel-header" style="margin-bottom:8px">
+              Dictionary ({{dictEntries.length}} signs)
+            </div>
+            <input class="dict-search"
+              placeholder="Search a sign..."
+              (input)="onDictSearch($any($event.target).value)" />
             <div class="dict-grid">
-              <button *ngFor="let entry of dictEntries" class="dict-card" (click)="clickDictWord(entry.name)">
+              <button *ngFor="let entry of dictEntries"
+                class="dict-card"
+                [class.dict-card-ready]="entry.available"
+                [class.dict-card-missing]="!entry.available"
+                (click)="clickDictWord(entry.name)">
                 <div class="dict-name">{{entry.name}}</div>
                 <div class="dict-cat">{{entry.cat}}</div>
               </button>
@@ -105,41 +99,75 @@
         </div>
       </div>
 
-      <!-- Right: Animator -->
+      <!-- Right: Pose Viewer -->
       <div class="panel">
         <div class="panel-header">Sign Language Output</div>
-        <div class="stage">
-          <div class="stage-overlay">
-            <span [class]="modeTagClass">{{modeTag}}</span>
-            <span class="stage-tag" style="background:rgba(15,58,67,.65)">{{indexTag}}</span>
+
+        <!-- Pose stage -->
+        <div class="pose-stage">
+          <!-- Empty state -->
+          <div *ngIf="poseQueue.length === 0" class="pose-empty">
+            <div class="pose-empty-icon">✋</div>
+            <p>Enter text and click<br><strong>▶ Translate to Sign</strong></p>
           </div>
-          <svg class="figure" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg"
-               [innerHTML]="figureHtml | safeHtml"></svg>
-          <div class="stage-bottom">
-            <div class="now-label">Now signing</div>
-            <div class="now-word">{{nowSigning}}</div>
-            <div class="sign-desc-text">{{signDesc}}</div>
+
+          <!-- No pose files generated yet -->
+          <div *ngIf="poseQueue.length > 0 && availableCount === 0" class="pose-no-files">
+            <p>No pose files found for these words.</p>
+            <p class="pose-hint">Run <code>python scripts/generate_poses.py</code> in the backend folder to generate pose files for the full vocabulary.</p>
+          </div>
+
+          <!-- Pose viewer — shown when at least one word has a pose file -->
+          <div *ngIf="poseQueue.length > 0 && availableCount > 0" class="pose-viewer-wrap">
+            <pose-viewer
+              #poseViewer
+              [attr.src]="currentPoseUrl"
+              autoplay
+              loop
+              background="#0f1e22"
+              width="1920"
+              height="1080"
+              class="pose-viewer-el"
+              (ended$)="onPoseEnded()"
+              (ended)="onPoseEnded()">
+            </pose-viewer>
+
+            <div class="pose-now-label" *ngIf="currentPoseUrl">
+              <span class="pose-now-word">{{ nowSigningWord }}</span>
+              <span class="pose-now-idx">{{ currentPoseIdx + 1 }} / {{ poseQueue.length }}</span>
+            </div>
+            <div class="pose-done-label" *ngIf="!currentPoseUrl && poseQueue.length > 0">
+              Done
+            </div>
           </div>
         </div>
 
-        <!-- Player controls -->
-        <div class="player">
-          <button class="play-btn" (click)="toggleAnim()">
-            {{animPlaying ? '⏸' : '▶'}}
+        <!-- Word chips — one per word in the sentence -->
+        <div class="pose-tokens" *ngIf="poseQueue.length > 0">
+          <button
+            *ngFor="let tok of poseQueue; let i = index"
+            class="pose-chip"
+            [class.pose-chip-ready]="tok.poseUrl"
+            [class.pose-chip-missing]="!tok.poseUrl"
+            [class.pose-chip-active]="i === currentPoseIdx && poseIsPlaying"
+            (click)="jumpToPoseWord(i)"
+            [title]="tok.poseUrl ? 'Click to jump to this sign' : 'No pose file for this word'">
+            {{ tok.word }}
           </button>
-          <div class="progress-wrap">
-            <div class="progress-bar">
-              <div class="progress-fill" [style.width.%]="progressPct"></div>
-            </div>
-            <div class="progress-meta">
-              <span>{{timeNow}}</span>
-              <span>{{timeTotal}}</span>
-            </div>
-          </div>
-          <div class="speed-ctrl">
-            <button *ngFor="let s of [0.5,1,1.5,2]"
-              [class.active]="animSpeed===s"
-              (click)="setSpeed(s)">{{s}}×</button>
+          <span *ngIf="missingCount > 0" class="pose-missing-note">
+            {{ missingCount }} word{{ missingCount > 1 ? 's' : '' }} unavailable
+          </span>
+        </div>
+
+        <!-- Playback controls -->
+        <div class="pose-controls" *ngIf="poseQueue.length > 0 && availableCount > 0">
+          <button class="play-btn" (click)="togglePosePlayback()">
+            {{ poseIsPlaying ? '⏸' : '▶' }}
+          </button>
+          <div class="pose-progress-info">
+            <span *ngIf="poseIsPlaying">Signing: <strong>{{ nowSigningWord }}</strong></span>
+            <span *ngIf="!poseIsPlaying && currentPoseUrl">Paused</span>
+            <span *ngIf="!poseIsPlaying && !currentPoseUrl && poseQueue.length > 0">Sequence complete</span>
           </div>
         </div>
       </div>
