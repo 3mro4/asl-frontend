@@ -51,7 +51,7 @@ if not exist "%FRONTEND_DIR%\node_modules" (
 
 :: ── Start backend ────────────────────────────────────────
 echo [1/2] Starting backend on port 8000...
-start "ASL Backend" cmd /k "cd /d %BACKEND_DIR% && call .venv\Scripts\activate && uvicorn main:app --port 8000 --reload"
+start "ASL Backend" cmd /k "cd /d %BACKEND_DIR% && call .venv\Scripts\activate && uvicorn main:app --port 8000"
 
 :: ── Wait for backend to be ready ─────────────────────────
 echo      Waiting for backend to be ready...
