@@ -36,6 +36,14 @@
         <div class="ws-status" *ngIf="isRecording && wsStatus === 'open'">
           <span style="color:#2a9d8f">● Backend connected</span>
         </div>
+        <div class="camera-select-wrap">
+          <label class="camera-label">📷 Camera</label>
+          <select class="camera-select" [(ngModel)]="selectedCamera" [disabled]="isRecording">
+            <option *ngFor="let cam of cameras" [value]="cam.deviceId">
+              {{ cam.label || 'Camera ' + (cameras.indexOf(cam) + 1) }}
+            </option>
+          </select>
+        </div>
         <button class="record-btn" (click)="toggleRecording()">
           {{ isRecording ? '⏹ Stop Recording' : '🎥 Start Recording' }}
         </button>

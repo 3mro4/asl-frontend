@@ -24,13 +24,15 @@ export class TranslatorComponent implements OnDestroy, AfterViewInit {
   mode: 'video' | 'text' = 'video';
 
   // ── Video → Text ───────────────────────────────────────
-  isRecording = false;
-  cameraError  = '';
+  isRecording    = false;
+  cameraError    = '';
   wsStatus: 'connecting' | 'open' | 'error' | 'closed' | '' = '';
-  bufferPct   = 0;
-  currentSign = '';
-  confidence  = 0;
-  signHistory: string[] = [];
+  bufferPct      = 0;
+  currentSign    = '';
+  confidence     = 0;
+  signHistory:   string[] = [];
+  cameras:       MediaDeviceInfo[] = [];
+  selectedCamera = '';
   private stream:        MediaStream | null = null;
   private frameInterval: any               = null;
   private sub:           Subscription | null = null;
@@ -57,6 +59,21 @@ export class TranslatorComponent implements OnDestroy, AfterViewInit {
       this.buildDictEntries(this.dictSearch);
       this.cdr.detectChanges();
     });
+    this.loadCameras();
+  }
+
+  async loadCameras() {
+    try {
+      // Brief permission request so labels are populated
+      const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
+      tmp.getTracks().forEach(t => t.stop());
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      this.cameras = devices.filter(d => d.kind === 'videoinput');
+      if (this.cameras.length > 0) this.selectedCamera = this.cameras[0].deviceId;
+      this.cdr.detectChanges();
+    } catch {
+      // Permission denied or no cameras — dropdown stays hidden
+    }
   }
 
   // ── Mode ───────────────────────────────────────────────
@@ -74,7 +91,10 @@ export class TranslatorComponent implements OnDestroy, AfterViewInit {
       return;
     }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const videoConstraint = this.selectedCamera
+        ? { deviceId: { exact: this.selectedCamera } }
+        : true;
+      this.stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint });
       this.isRecording = true;
       this.cdr.detectChanges();
       const video = this.videoEl.nativeElement;

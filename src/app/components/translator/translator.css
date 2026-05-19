@@ -102,6 +102,26 @@
   border-top: 1px solid #eee;
 }
 
+.camera-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+.camera-label { font-size: 13px; color: #666; white-space: nowrap; }
+.camera-select {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  cursor: pointer;
+}
+.camera-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .record-btn {
   width: 100%; padding: 16px;
   background: #2a9d8f; color: white;
