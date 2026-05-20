@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class WebsocketService {
@@ -11,7 +12,7 @@ export class WebsocketService {
   connect() {
     this.waiting = false;
     this.status$.next('connecting');
-    this.socket = new WebSocket('ws://localhost:8000/ws/translate');
+    this.socket = new WebSocket(environment.wsUrl);
 
     this.socket.onopen = () => this.status$.next('open');
 
